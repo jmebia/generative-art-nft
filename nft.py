@@ -63,15 +63,61 @@ def get_weighted_rarities(arr):
 # Generate a single image given an array of filepaths representing layers
 def generate_single_image(filepaths, output_filename=None):
     
-    # Treat the first layer as the background
-    bg = Image.open(os.path.join('assets', filepaths[0]))
-    
-    
-    # Loop through layers 1 to n and stack them on top of another
+    arranged_filepaths = {
+        'background' : filepaths[0],
+        'head_back' : 'none',
+        'body_acc_back' : 'none',
+        'body' : 'none',
+        'clothes' : 'none',
+        'body_acc' : 'none',
+        'body_head' : 'none',
+        'eyes' : 'none',
+        'mouth' : 'none',
+        'head' : 'none',
+        'weapon' : 'none',
+    }
+
+    # TODO: Loop through layers 1 to n and arrange the layer of the matching sprites of the traits before generating an image
     for filepath in filepaths[1:]:
         if filepath.endswith('.png'):
-            img = Image.open(os.path.join('assets', filepath))
-            bg.paste(img, (0,0), img)
+            
+            # get filepath directory to identify trait
+            t_dir = filepath.split('\\')[0]
+            match t_dir:
+                case 'Background': 
+                    arranged_filepaths['background'] = filepath
+                case 'Race': 
+                    arranged_filepaths['body_head'] = '_' + filepath
+                    arranged_filepaths['body'] = filepath
+                case 'Eyes': 
+                    arranged_filepaths['eyes'] = filepath
+                case 'Mouth': 
+                    arranged_filepaths['mouth'] = filepath
+                case 'Head': 
+                    arranged_filepaths['head_back'] = '_' + filepath
+                    arranged_filepaths['head'] = filepath
+                case 'Weapon': 
+                    arranged_filepaths['weapon'] = filepath
+                case 'Clothes': 
+                    arranged_filepaths['clothes'] = filepath
+                case 'BodyAccessory': 
+                    arranged_filepaths['body_acc_back'] = '_' + filepath
+                    arranged_filepaths['body_acc'] = filepath
+            pass
+        pass
+
+    # Treat the first layer as the background
+    bg = Image.open(os.path.join('assets', arranged_filepaths['background']))
+    
+    # Loop through layers 1 to n and stack them on top of another
+    print("GENERATING IMAGE...")
+    for key in arranged_filepaths:
+        print(arranged_filepaths[key])
+        if filepath.endswith('.png'):
+            img_path = os.path.join('assets', arranged_filepaths[key])
+            if os.path.exists(img_path):
+                img = Image.open(img_path)
+                bg.paste(img, (0,0), img)
     
     # Save the final image into desired location
     if output_filename is not None:
